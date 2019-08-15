@@ -1,0 +1,185 @@
+$color-background:#fbeac8;
+$color-light-tile:#f5cd79; //summertime https://flatuicolors.com/palette/ru
+$color-dark-tile:#cc8e35; //alameda ochre https://flatuicolors.com/palette/es
+$color-white-graveyard:black;
+$color-black-graveyard:white;
+$color-shadow:rgb(102, 97, 97);
+$color-piece-selector-box:#f7f1e3;
+
+$color-light-theme:#fbeac8;
+$color-options-background:#f7d999;
+
+$tile-size:7rem;
+$board-size:$tile-size * 8;
+$piece-size:$tile-size - 1rem;
+$graveyard-piece-size: $piece-size - 3rem;
+/* BASIC SET UP */
+*{
+    margin:0;
+    padding:0;
+}
+html{
+    font-size:62.5%; /* for rem based responsive design*/
+}
+body{
+    background:$color-background;
+}
+
+/* TYPOGRAPHY */
+h1{
+    font-size:4.5rem;
+    text-align: center;
+    width:100%;
+    margin:auto;
+}
+
+/* THE QUOTE GENERATOR */
+
+#quote-generator{
+    display:block;
+    // why does this make it non responsive
+    width:100rem;
+    margin:1rem auto 1rem auto;
+    text-align:center;
+
+}
+
+/* CONTAINER FOR THE BOARD, GRAVEYARDS*/
+#board-container{
+    display:flex;
+    flex-direction:row;
+    justify-content:space-around;
+    
+}
+/* CONTAINER FOR THE OPTIONS */
+#options-container{
+    display:flex;
+    flex-direction:row;
+    justify-content:space-around;
+
+    background:$color-options-background;
+    width:50%;
+    margin:2rem auto 2rem auto;
+}
+
+
+/* THE GRAVEYARDS */
+#white-graveyard{
+    margin:0;
+    background:$color-white-graveyard;
+    color:$color-black-graveyard;
+    box-shadow: .5rem .5rem $color-shadow;
+    border-radius: .5rem;
+}
+#black-graveyard{
+    margin:0;
+    background:$color-black-graveyard;
+    color:$color-white-graveyard;
+    box-shadow: .5rem .5rem $color-shadow;
+    border-radius: .5rem;
+}
+.graveyard-title{
+    margin:1rem;
+}
+.graveyard-pieces{
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items:center;
+}
+.graveyard-piece{
+    font-size:$graveyard-piece-size;
+    margin:.12rem;
+}
+
+/* THE BOARD */
+#board{
+    display:grid; 
+    grid-template-columns: repeat(8,$tile-size);
+    grid-template-rows: repeat(8,$tile-size);
+
+    
+    width:$board-size;
+    height:$board-size;
+
+
+    
+
+}
+
+// MAKING THE TILES
+
+.tile{
+    width:$tile-size;
+    height:$tile-size;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+.tile:hover{
+    cursor: pointer;
+}
+.light{
+    background:$color-light-tile;
+}
+.dark{
+    background:$color-dark-tile;
+}
+
+// PIECES REPRESENTED BY ICONS
+
+i{
+    font-size:$piece-size;
+}
+.white{color:ivory;}
+.black{color:darkslategrey;}
+
+//PLAYER TURN DISPLAY
+#player-turn-display{
+    text-align:center;
+    margin:1rem 0 1rem 0;
+    font-size:2rem;
+    font-weight:400;
+}
+
+//PIECE SELECTOR FOR WHEN PAWN GETS TO THE OPPOSITE END
+#piece-selector-box{
+    background:$color-piece-selector-box;
+    width:50rem;
+    height:20rem;
+    border-radius:.8rem;
+    box-shadow: .5rem .5rem $color-shadow;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
+
+    display:none;
+}
+#piece-selector-title{
+    font-size:2rem;
+    text-align: center;
+    margin:1rem 0rem 4rem 0rem;
+}
+#piece-selector{
+
+    display:flex;
+    flex-direction:row;
+    justify-content: space-around;
+    align-items:center;
+}
+
+.piece-option{
+    cursor:pointer;
+    padding:1rem;
+    border-radius:1rem;
+}
+
+.piece-option:hover{
+    cursor:pointer;
+    background:darken($color-piece-selector-box,7);
+    transform:scale(1.15)
+}

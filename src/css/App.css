@@ -1,0 +1,141 @@
+/* BASIC SET UP */
+* {
+  margin: 0;
+  padding: 0; }
+
+html {
+  font-size: 62.5%;
+  /* for rem based responsive design*/ }
+
+body {
+  background: #fbeac8; }
+
+/* TYPOGRAPHY */
+h1 {
+  font-size: 4.5rem;
+  text-align: center;
+  width: 100%;
+  margin: auto; }
+
+/* THE QUOTE GENERATOR */
+#quote-generator {
+  display: block;
+  width: 100rem;
+  margin: 1rem auto 1rem auto;
+  text-align: center; }
+
+/* CONTAINER FOR THE BOARD, GRAVEYARDS*/
+#board-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around; }
+
+/* CONTAINER FOR THE OPTIONS */
+#options-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  background: #f7d999;
+  width: 50%;
+  margin: 2rem auto 2rem auto; }
+
+/* THE GRAVEYARDS */
+#white-graveyard {
+  margin: 0;
+  background: black;
+  color: white;
+  box-shadow: 0.5rem 0.5rem #666161;
+  border-radius: .5rem; }
+
+#black-graveyard {
+  margin: 0;
+  background: white;
+  color: black;
+  box-shadow: 0.5rem 0.5rem #666161;
+  border-radius: .5rem; }
+
+.graveyard-title {
+  margin: 1rem; }
+
+.graveyard-pieces {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; }
+
+.graveyard-piece {
+  font-size: 3rem;
+  margin: .12rem; }
+
+/* THE BOARD */
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 7rem);
+  grid-template-rows: repeat(8, 7rem);
+  width: 56rem;
+  height: 56rem; }
+
+.tile {
+  width: 7rem;
+  height: 7rem;
+  display: flex;
+  justify-content: center;
+  align-items: center; }
+
+.tile:hover {
+  cursor: pointer; }
+
+.light {
+  background: #f5cd79; }
+
+.dark {
+  background: #cc8e35; }
+
+i {
+  font-size: 6rem; }
+
+.white {
+  color: ivory; }
+
+.black {
+  color: darkslategrey; }
+
+#player-turn-display {
+  text-align: center;
+  margin: 1rem 0 1rem 0;
+  font-size: 2rem;
+  font-weight: 400; }
+
+#piece-selector-box {
+  background: #f7f1e3;
+  width: 50rem;
+  height: 20rem;
+  border-radius: .8rem;
+  box-shadow: 0.5rem 0.5rem #666161;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* bring your own prefixes */
+  transform: translate(-50%, -50%);
+  display: none; }
+
+#piece-selector-title {
+  font-size: 2rem;
+  text-align: center;
+  margin: 1rem 0rem 4rem 0rem; }
+
+#piece-selector {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center; }
+
+.piece-option {
+  cursor: pointer;
+  padding: 1rem;
+  border-radius: 1rem; }
+
+.piece-option:hover {
+  cursor: pointer;
+  background: #efe3c7;
+  transform: scale(1.15); }
