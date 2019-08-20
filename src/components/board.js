@@ -24,8 +24,11 @@ const DEFAULTSTATE = {
   possibleMoves: [],
   pawnToConvert: "none",
   enPassant: "none",
-  rookCastlePlacement: { prevTile: "none", newTile: "none" },
-  whiteGraveyard: [],
+  rookCastlePlacementLeft: { prevTile: "none", newTile: "none" },
+  rookCastlePlacementRight: { prevTile: "none", newTile: "none" },
+  check: false,
+  checkMate: false,
+  whiteGraveyard: [],   
   blackGraveyard: [],
   showTurnDisplay: true,
   showPossibleMoves: false,
@@ -112,6 +115,17 @@ function removeTileStyling() {
   for (let i = 0; i < tiles.length; i++) { tiles[i].style = null; }
 }
 
+function getOppositePieceColor(pieceColor) {
+  let oppPieceColor = "none";
+  if (pieceColor == "white") {
+    oppPieceColor = "black";
+  }
+  else if (pieceColor == "black") {
+    oppPieceColor = "white";
+  }
+  return oppPieceColor;
+}
+
 class Tile extends React.Component {
   constructor(props) {
     super(props);
@@ -157,8 +171,14 @@ class Board extends React.Component {
     super(props);
     this.state = DEFAULTSTATE;
     this.handleTileClick = this.handleTileClick.bind(this);
+    this.calculateMoves = this.calculateMoves.bind(this);
     this.displayPossibleMoves = this.displayPossibleMoves.bind(this);
     this.moveTo = this.moveTo.bind(this);
+    this.iterateOverBoardForKings = this.iterateOverBoardForKings.bind(this);
+    this.checkIfTileThreatened = this.checkIfTileThreatened.bind(this);
+    this.getPossibleMoves = this.getPossibleMoves.bind(this);
+    this.getTilesBetween = this.getTilesBetween.bind(this);
+    this.lookForCheck = this.lookForCheck.bind(this);
     this.activatePieceSelection = this.activatePieceSelection.bind(this);
     this.convertPiece = this.convertPiece.bind(this);
     this.toggleTurnDisplay = this.toggleTurnDisplay.bind(this);
@@ -170,57 +190,66 @@ class Board extends React.Component {
     this.reset = this.reset.bind(this);
   }
   handleTileClick(tileId) {
-    let makingAMove = false;
-    //Check if the tile clicked is a possible move
-    for (let i = 0; i < this.state.possibleMoves.length; i++) {
-      if (tileId == this.state.possibleMoves[i]) { makingAMove = true; }
-    }
-    //OPTION 1: MOVE TO THIS TILE
-    if (makingAMove) {
-      this.moveTo(tileId);
-    }
-    //OPTION 2: SELECTING A PIECE TO BE MOVED
-    else if (this.state[tileId].piece.color == this.state.playerTurn) {
-      //update the currently selected tile
+    //can only select king on check
+    console.log(`state of checkmate is ${this.state.checkMate}`)
+    if (this.state.checkMate) {
+      console.log("Checkmate activated")
       this.setState({
-        selectedTile: tileId
+        playerTurn: "No"
       })
+    }
+    else {
+      let makingAMove = false;
+      //Check if the tile clicked is a possible move
+      for (let i = 0; i < this.state.possibleMoves.length; i++) {
+        if (tileId == this.state.possibleMoves[i]) { makingAMove = true; }
+      }
+      //OPTION 1: MOVE TO THIS TILE
+      if (makingAMove) {
+        this.moveTo(tileId);
+      }
+      //OPTION 2: SELECTING A PIECE TO BE MOVED
+      else if (this.state[tileId].piece.color == this.state.playerTurn) {
+        //update the currently selected tile
+        this.setState({
+          selectedTile: tileId
+        })
 
-      let pieceColor = this.state[tileId].piece.color;
-      let pieceType = this.state[tileId].piece.type;
-
-      switch (pieceType) {
-        case "pawn":
-          this.calculatePawnMoves(tileId, pieceColor);
-          return;
-        case "knight":
-          this.calculateKnightMoves(tileId, pieceColor);
-          return;
-        case "bishop":
-          this.calculateBishopMoves(tileId, pieceColor);
-          return;
-        case "rook":
-          this.calculateRookMoves(tileId, pieceColor);
-          return;
-        case "queen":
-          this.calculateQueenMoves(tileId, pieceColor);
-          return;
-        case "king":
-          this.calculateKingMoves(tileId, pieceColor);
-          return;
-        default:
-          return;
+        let pieceColor = this.state[tileId].piece.color;
+        let pieceType = this.state[tileId].piece.type;
+        //calculates possible moves and updates the state
+        this.calculateMoves(tileId, pieceColor, pieceType, true)
+      }
+      //OPTION 3: SELECTING EMPTY TILE THAT CAN'T BE MOVED TO
+      else if (this.state[tileId].piece.color == "none") {
+        //because we remove styling on piece selection, the board rotation must be called again
+        this.rotateBoard();
+      }
+      //OPTION 4: SELECTED OPPONENT'S PIECE THAT CAN'T BE CAPTURED
+      else {
+        //because we remove styling on piece selection, the board rotation must be called again
+        this.rotateBoard();
       }
     }
-    //OPTION 3: SELECTING EMPTY TILE THAT CAN'T BE MOVED TO
-    else if (this.state[tileId].piece.color == "none") {
-      //because we remove styling on piece selection, the board rotation must be called again
-      this.rotateBoard();
-    }
-    //OPTION 4: SELECTED OPPONENT'S PIECE THAT CAN'T BE CAPTURED
-    else {
-      //because we remove styling on piece selection, the board rotation must be called again
-      this.rotateBoard();
+
+  }
+  //calculates moves based on piece type, boolean determines whether to update this.state.possibleMoves
+  calculateMoves(tileId, pieceColor, pieceType, setState) {
+    switch (pieceType) {
+      case "pawn":
+        return this.calculatePawnMoves(tileId, pieceColor, setState);
+      case "knight":
+        return this.calculateKnightMoves(tileId, pieceColor, setState);
+      case "bishop":
+        return this.calculateBishopMoves(tileId, pieceColor, setState);
+      case "rook":
+        return this.calculateRookMoves(tileId, pieceColor, setState);
+      case "queen":
+        return this.calculateQueenMoves(tileId, pieceColor, setState);
+      case "king":
+        return this.calculateKingMoves(tileId, pieceColor, setState);
+      default:
+        return;
     }
   }
   moveTo(tileId) {
@@ -279,22 +308,298 @@ class Board extends React.Component {
     }
 
     //castling
-    if (prevTile.piece.type == "king" && this.state.rookCastlePlacement.prevTile != "none") {
-      let newTile = this.state[this.state.rookCastlePlacement.newTile];
-      let prevTile = this.state[this.state.rookCastlePlacement.prevTile];
-      let movedPiece = prevTile.piece;
+    if (prevTile.piece.type == "king" && (this.state.rookCastlePlacementLeft.prevTile != "none" || this.state.rookCastlePlacementRight.prevTile != "none")) {
+      let rookNewTile;
+      let rookPrevTile;
+      if (tileId[0] == "C" && prevTile.piece.color == "white") {
+        rookNewTile = this.state[this.state.rookCastlePlacementLeft.newTile];
+        rookPrevTile = this.state[this.state.rookCastlePlacementLeft.prevTile];
+      }
+      else if (tileId[0] == "G" && prevTile.piece.color == "white") {
+        rookNewTile = this.state[this.state.rookCastlePlacementRight.newTile];
+        rookPrevTile = this.state[this.state.rookCastlePlacementRight.prevTile];
+      }
+      else if (tileId[0] == "C" && prevTile.piece.color == "black") {
+        rookNewTile = this.state[this.state.rookCastlePlacementLeft.newTile];
+        rookPrevTile = this.state[this.state.rookCastlePlacementLeft.prevTile];
+      }
+      else if (tileId[0] == "G" && prevTile.piece.color == "black") {
+        rookNewTile = this.state[this.state.rookCastlePlacementRight.newTile];
+        rookPrevTile = this.state[this.state.rookCastlePlacementRight.prevTile];
+      }
+      let movedPiece = rookPrevTile.piece;
       movedPiece.hasMoved = true;
       this.setState({
         //add piece to new tile
-        [newTile.id]: { id: newTile.id, tileColor: newTile.tileColor, piece: movedPiece },
+        [rookNewTile.id]: { id: rookNewTile.id, tileColor: rookNewTile.tileColor, piece: movedPiece },
         //remove piece from previous tile and add to graveyard
-        [prevTile.id]: { id: prevTile.id, tileColor: prevTile.tileColor, piece: pieces.emptyTile },
-        rookCastlePlacement:{prevTile:"none", newTile:"none"}
+        [rookPrevTile.id]: { id: rookPrevTile.id, tileColor: rookPrevTile.tileColor, piece: pieces.emptyTile },
+        rookCastlePlacement: { prevTile: "none", newTile: "none" }
       })
     }
+
+
+  }
+  iterateOverBoardForKings() {
+    let arr = [];
+    //iterate over columns
+    for (let i = 65; i <= 72; i++) {
+      let col = String.fromCharCode(i);
+      //iterate over rows
+      for (let j = 1; j <= 8; j++) {
+        let row = j;
+        let tileId = col + row;
+        //add tile id if it shares the piece color
+        if (this.state[tileId].piece.color == "white" && this.state[tileId].piece.type == "king") {
+          arr.push(tileId)
+        }
+        else if (this.state[tileId].piece.color == "black" && this.state[tileId].piece.type == "king") {
+          arr.push(tileId)
+        }
+      }
+    }
+    return arr;
   }
 
-  calculatePawnMoves(tileId, pieceColor) {
+  checkIfTileThreatened(tileId, pieceColor, oppPieceColor, checkingForBlock) {
+    let pawnMoves = [];
+    let threateningTiles = [];
+    if(checkingForBlock){
+      console.log("hit checking for block")
+      //when we check if pawns can block checkmate, look at their normal move options
+      if (pieceColor == "white") {
+        pawnMoves = [
+          (String.fromCharCode(tileId[0].charCodeAt(0)) + (parseInt(tileId[1]) + 1))
+        ]
+        //check for firstMove pawns
+        if(tileId[1] == 5){pawnMoves.push((String.fromCharCode(tileId[0].charCodeAt(0)) + (parseInt(tileId[1]) + 2)))};
+      }
+      else if (pieceColor == "black") {
+        pawnMoves = [
+          (String.fromCharCode(tileId[0].charCodeAt(0)) + (parseInt(tileId[1]) - 1))
+        ]
+        //check for firstMove pawns
+        if(tileId[1] == 4){pawnMoves.push((String.fromCharCode(tileId[0].charCodeAt(0)) + (parseInt(tileId[1]) - 2)))};
+      }
+    }
+    else{
+      console.log("did not hit checking for block")
+      //otherwise we look at the diagonal tiles in front which they can take
+      if (pieceColor == "white") {
+        pawnMoves = [
+          (String.fromCharCode(tileId[0].charCodeAt(0) - 1) + (parseInt(tileId[1]) + 1)),
+          (String.fromCharCode(tileId[0].charCodeAt(0) + 1) + (parseInt(tileId[1]) + 1))
+        ]
+      }
+      else if (pieceColor == "black") {
+        pawnMoves = [
+          (String.fromCharCode(tileId[0].charCodeAt(0) - 1) + (parseInt(tileId[1]) - 1)),
+          (String.fromCharCode(tileId[0].charCodeAt(0) + 1) + (parseInt(tileId[1]) - 1))
+        ]
+      }
+    }
+    console.log(`for ${tileId} these are the pawn moves: ${pawnMoves  }`)
+
+
+    let knightMoves = this.calculateKnightMoves(tileId, pieceColor, false);
+    let bishopMoves = this.calculateBishopMoves(tileId, pieceColor, false);
+    let rookMoves = this.calculateRookMoves(tileId, pieceColor, false);
+    let queenMoves = this.calculateQueenMoves(tileId, pieceColor, false); //could just incorporate this into rook and bishop
+    let kingMoves = [
+      (String.fromCharCode(tileId[0].charCodeAt(0) - 1) + parseInt(tileId[1])),
+      (String.fromCharCode(tileId[0].charCodeAt(0) - 1) + (parseInt(tileId[1]) + 1)),
+      (String.fromCharCode(tileId[0].charCodeAt(0) - 1) + (parseInt(tileId[1]) - 1)),
+      tileId[0] + (parseInt(tileId[1]) - 1),
+      tileId[0] + (parseInt(tileId[1]) + 1),
+      (String.fromCharCode(tileId[0].charCodeAt(0) + 1) + parseInt(tileId[1])),
+      (String.fromCharCode(tileId[0].charCodeAt(0) + 1) + (parseInt(tileId[1]) + 1)),
+      (String.fromCharCode(tileId[0].charCodeAt(0) + 1) + (parseInt(tileId[1]) - 1))
+    ]
+    pawnMoves.forEach((tile) => {
+      if (typeof this.state[tile] !== 'undefined') {
+        if (this.state[tile].piece.type == "pawn" && this.state[tile].piece.color == oppPieceColor) {
+          // console.log(`${tileId} is fucked by ${oppPieceColor} ${this.state[tile].piece.type} at ${tile}`)
+          threateningTiles.push(tile);
+        }
+      }
+
+    })
+    knightMoves.forEach((tile) => {
+      if (this.state[tile].piece.type == "knight" && this.state[tile].piece.color == oppPieceColor) {
+        //console.log(`${tileId} is fucked by ${oppPieceColor} ${this.state[tile].piece.type} at ${tile}`)
+        threateningTiles.push(tile);
+      }
+    })
+    bishopMoves.forEach((tile) => {
+      if (this.state[tile].piece.type == "bishop" && this.state[tile].piece.color == oppPieceColor) {
+        //console.log(`${tileId} is fucked by ${oppPieceColor} ${this.state[tile].piece.type} at ${tile}`)
+        threateningTiles.push(tile);
+      }
+    })
+    rookMoves.forEach((tile) => {
+      if (this.state[tile].piece.type == "rook" && this.state[tile].piece.color == oppPieceColor) {
+        //console.log(`${tileId} is fucked by ${oppPieceColor} ${this.state[tile].piece.type} at ${tile}`)
+        threateningTiles.push(tile);
+      }
+    })
+    queenMoves.forEach((tile) => {
+      if (this.state[tile].piece.type == "queen" && this.state[tile].piece.color == oppPieceColor) {
+        //console.log(`${tileId} is fucked by ${oppPieceColor} ${this.state[tile].piece.type} at ${tile}`)
+        threateningTiles.push(tile);
+      }
+    })
+    if(!checkingForBlock){ //can't block with a king
+      kingMoves.forEach((tile) => {
+        if (typeof this.state[tile] !== 'undefined') {
+          if (this.state[tile].piece.type == "king" && this.state[tile].piece.color == oppPieceColor) {
+            //console.log(`${tileId} is fucked by ${oppPieceColor} ${this.state[tile].piece.type} at ${tile}`)
+            threateningTiles.push(tile);
+          }
+        }
+      })
+    }
+
+    return threateningTiles;
+  }
+
+  getPossibleMoves(tileId) {
+    let pieceColor = this.state[tileId].piece.color;
+    let pieceType = this.state[tileId].piece.type;
+    return this.calculateMoves(tileId, pieceColor, pieceType, false);
+  }
+
+  getTilesBetween(tile1, tile2) {
+    let betweenTiles = [];
+    //same column / vertical 
+    if (tile1[0] == tile2[0]) {
+      let min = Math.min(parseInt(tile1[1]), parseInt(tile2[1]))
+      let max = Math.max(parseInt(tile1[1]), parseInt(tile2[1]))
+      for (let i = min + 1; i < max; i++) {
+        let betweenTile = tile1[0] + i;
+        //console.log(betweenTile + " type is " + this.state[betweenTile].piece.type);
+        if (this.state[betweenTile].piece.type == "none") {
+          betweenTiles.push(betweenTile)
+        }
+        else {
+          return [];
+        }
+      }
+    }
+    //same row / horizontal
+    else if (tile1[1] == tile2[1]) {
+      let min = Math.min(tile1[0].charCodeAt(0), tile2[0].charCodeAt(0))
+      let max = Math.max(tile1[0].charCodeAt(0), tile2[0].charCodeAt(0))
+      for (let i = min + 1; i < max; i++) {
+        let betweenTile = String.fromCharCode(i) + tile1[1];
+        if (this.state[betweenTile].piece.type == "none") {
+          betweenTiles.push(betweenTile)
+        }
+        else {
+          return [];
+        }
+      }
+    }
+    //diagonal OR not facing each other
+    else {
+      let minCol = Math.min(tile1[0].charCodeAt(0), tile2[0].charCodeAt(0)); //B
+      let minRow = Math.min(tile1[1], tile2[1]); //3
+      let maxCol = Math.max(tile1[0].charCodeAt(0), tile2[0].charCodeAt(0)); //E
+      let maxRow = Math.max(tile1[1], tile2[1]); //6
+      let row;
+      let col;
+      for (let i = 1; i < maxRow - minRow; i++) {
+        row = minRow + i;
+        if ((tile1[0].charCodeAt(0) + parseInt(tile1[1])) == (tile2[0].charCodeAt(0) + parseInt(tile2[1]))) {
+          col = maxCol - i
+        }
+        else {
+          col = minCol + i;
+        }
+        let betweenTile = String.fromCharCode(col) + row;
+        if (this.state[betweenTile].piece.type == "none") {
+          betweenTiles.push(betweenTile)
+        }
+        else {
+          return [];
+        }
+      }
+    }
+    return betweenTiles;
+  }
+
+  lookForCheck() {
+    let kings = this.iterateOverBoardForKings();
+
+    kings.forEach((king) => {
+      let pieceColor = this.state[king].piece.color;
+      let oppColor = getOppositePieceColor(pieceColor);
+      let threateningTiles = this.checkIfTileThreatened(king, pieceColor, oppColor, false);
+      // 1. King is in check
+      if (threateningTiles.length > 0) {
+        console.log(`King is threatened by ${threateningTiles}`)
+
+        //let possibleMoves = []; //possible moves to avoid checkmate
+        // Can only select King or pieces that can save it
+        // 2. Can King move away?
+
+        console.log(this.calculateKingMoves(king, pieceColor, false))
+        if (this.calculateKingMoves(king, pieceColor, false) < 1) {
+          console.log("King has no possible moves")
+          // 3. Can threatening pieces be killed?
+          let canKillPiece = true;
+          let noBlock = false;
+          threateningTiles.forEach((tile) => {
+            let canSlayThreats = this.checkIfTileThreatened(tile, getOppositePieceColor(pieceColor), pieceColor, false)
+            if (canSlayThreats.length < 1 || (canSlayThreats.length == 1 && this.state[canSlayThreats[0]].piece.type == "king")) {
+              canKillPiece = false;
+              if (this.state[tile].piece.type == "pawn" || this.state[tile].piece.type == "knight") { noBlock = true }
+            }
+            else {
+              console.log(`can kill ${tile} with ${this.checkIfTileThreatened(tile, getOppositePieceColor(pieceColor), pieceColor, false)}`)
+            }
+          })
+          if (canKillPiece) {
+            console.log("Not checkmate because you can kill threatening pieces")
+          }
+          else {
+            console.log("can't kill threatening piece")
+            // 4. If it is a pawn or rook threatening it cannot be blocked, therefore checkmate
+            if (noBlock) {
+              this.checkMate(oppColor)
+              return;
+            }
+            // 5. Can another piece block WITHOUT exposing king
+            let canBlockPiece = false;
+            threateningTiles.forEach((tile) => {
+              console.log("these are the tiles between: " + this.getTilesBetween(king, tile))
+              this.getTilesBetween(king, tile).forEach((betweenTile) => {
+                let tilesCanBlockBetweenTile = this.checkIfTileThreatened(betweenTile, getOppositePieceColor(pieceColor), pieceColor, true);
+                console.log(`${tilesCanBlockBetweenTile} can block on ${betweenTile}`)
+                if (tilesCanBlockBetweenTile.length > 0) {
+                  canBlockPiece = true;
+                }
+              })
+            })
+            canBlockPiece ? console.log("block available") : this.checkMate(oppColor);
+
+          }
+
+        }
+        else { console.log("king has possible moves") }
+      }
+
+    })
+  }
+
+  checkMate(winningPlayerColor) {
+    console.log(`${winningPlayerColor} won by checkmate!`)
+    this.setState({
+      checkMate: true
+    })
+    this.reset();
+  }
+
+  calculatePawnMoves(tileId, pieceColor, setState) {
     let pawnMoves = [];
     //1. Getting forward movement options
     pawnForwardMovement(this.state, tileId, pieceColor).forEach((tile) => { pawnMoves.push(tile) });
@@ -303,40 +608,53 @@ class Board extends React.Component {
     //3. Check for en passant
     enPassant(this.state, tileId, pieceColor).forEach((tile) => { pawnMoves.push(tile) });
     //4. Update the state
-    this.setState({
-      possibleMoves: pawnMoves
-    })
+    if (setState) {
+      this.setState({
+        possibleMoves: pawnMoves
+      })
+    }
+    return pawnMoves;
+
   }
-  calculateKnightMoves(tileId, pieceColor) {
-    let knightMoves = [];
+  calculateKnightMoves(tileId, pieceColor, setState) {
+    let knightMoves = []; //Tryin' to make some front page drive-in news!
     //1. get move options for knight
     knightMovement(this.state, tileId, pieceColor).forEach((tile) => { knightMoves.push(tile) });
     //2. Update the state
-    this.setState({
-      possibleMoves: knightMoves
-    })
+    if (setState) {
+      this.setState({
+        possibleMoves: knightMoves
+      })
+    }
+    return knightMoves; //Tryin' to lose the awkward teenage blues!
   }
-  calculateBishopMoves(tileId, pieceColor) {
+  calculateBishopMoves(tileId, pieceColor, setState) {
     let bishopMoves = [];
 
     //1. get diagonal move options
     diagonalMovement(this.state, tileId, pieceColor, MAX_DISTANCE).forEach((tile) => { bishopMoves.push(tile) });
     //2. Update the state
-    this.setState({
-      possibleMoves: bishopMoves
-    })
+    if (setState) {
+      this.setState({
+        possibleMoves: bishopMoves
+      })
+    }
+    return bishopMoves;
   }
-  calculateRookMoves(tileId, pieceColor) {
+  calculateRookMoves(tileId, pieceColor, setState) {
     let rookMoves = [];
 
     //1. get horizontal and vertical move options using max distance
     horizontalAndVerticalMovement(this.state, tileId, pieceColor, MAX_DISTANCE).forEach((tile) => { rookMoves.push(tile) });
     //2. Update the state
-    this.setState({
-      possibleMoves: rookMoves
-    })
+    if (setState) {
+      this.setState({
+        possibleMoves: rookMoves
+      })
+    }
+    return rookMoves;
   }
-  calculateQueenMoves(tileId, pieceColor) {
+  calculateQueenMoves(tileId, pieceColor, setState) {
     let queenMoves = [];
 
     //1. get horizontal and vertical move options using max distance
@@ -344,13 +662,18 @@ class Board extends React.Component {
     //2. get diagonal move options using max distance
     diagonalMovement(this.state, tileId, pieceColor, MAX_DISTANCE).forEach((tile) => { queenMoves.push(tile) });
     //3. Update the state
-    this.setState({
-      possibleMoves: queenMoves
-    })
+    if (setState) {
+      this.setState({
+        possibleMoves: queenMoves
+      })
+    }
+    return queenMoves;
   }
-  calculateKingMoves(tileId, pieceColor) {
+  calculateKingMoves(tileId, pieceColor, setState) {
     let kingMoves = [];
-
+    let uncheckedKingMoves = [];
+    let oppPieceColor;
+    if (pieceColor == "white") { oppPieceColor = "black" } else if (pieceColor == "black") { oppPieceColor = "white" };
     //1. get horizontal and vertical move options
     horizontalAndVerticalMovement(this.state, tileId, pieceColor, MIN_DISTANCE).forEach((tile) => { kingMoves.push(tile) });
     //2. get diagonal move options
@@ -359,12 +682,23 @@ class Board extends React.Component {
     let castling = castle(this.state, tileId, pieceColor);
     let castlePotentialMove = castling[0];
     castlePotentialMove.forEach((tile) => { kingMoves.push(tile) });
-    let rookCastlePlacement = castling[1];
-    //4. Update the state
-    this.setState({
-      possibleMoves: kingMoves,
-      rookCastlePlacement: rookCastlePlacement
+    let rookCastlePlacementLeft = castling[1];
+    let rookCastlePlacementRight = castling[2];
+    //4.1 Check prevention
+    kingMoves.forEach((tile) => {
+      if (this.checkIfTileThreatened(tile, pieceColor, oppPieceColor, false).length < 1) {
+        uncheckedKingMoves.push(tile)
+      };
     })
+    //5. Update the state
+    if (setState) {
+      this.setState({
+        possibleMoves: uncheckedKingMoves,
+        rookCastlePlacementLeft: rookCastlePlacementLeft,
+        rookCastlePlacementRight: rookCastlePlacementRight
+      })
+    }
+    return uncheckedKingMoves;
   }
   displayPossibleMoves() {
     for (let i = 0; i < this.state.possibleMoves.length; i++) {
@@ -456,9 +790,10 @@ class Board extends React.Component {
     }
   }
   reset() {
-    this.setState(DEFAULTSTATE)
+    this.setState(DEFAULTSTATE);
   }
   render() {
+    this.lookForCheck();
     //change background color to indicate when a tile is selected
     if (this.state.selectedTile != "none") {
       document.getElementById(this.state.selectedTile).style = "background-color:navy";

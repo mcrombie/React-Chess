@@ -44,11 +44,11 @@ export function pawnDiagonalMovement(state, tileId, pieceColor) {
         if (typeof tileOption === "undefined") { continue }
         //only allow diagonal if there is an enemy piece there
         if (tileOption.piece.color != "none" && tileOption.piece.color != currentTile.piece.color) { possibleMoves.push(tileOptionId) }
-        else if (tileOptionId == state.enPassant){possibleMoves.push(tileOptionId)};
+        else if (tileOptionId == state.enPassant) { possibleMoves.push(tileOptionId) };
     }
     return possibleMoves;
 }
-export function enPassant(state, tileId, pieceColor){
+export function enPassant(state, tileId, pieceColor) {
     let possibleMoves = [];
 
     return possibleMoves;
@@ -85,7 +85,9 @@ export function diagonalMovement(state, tileId, pieceColor, distance) {
     //up and right
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) + i)) + (parseInt(tileId[1]) + parseInt(i))]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -95,7 +97,9 @@ export function diagonalMovement(state, tileId, pieceColor, distance) {
     //down and right
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) + i)) + (parseInt(tileId[1]) - parseInt(i))]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -105,7 +109,9 @@ export function diagonalMovement(state, tileId, pieceColor, distance) {
     //up and left
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) - i)) + (parseInt(tileId[1]) + parseInt(i))]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -115,7 +121,9 @@ export function diagonalMovement(state, tileId, pieceColor, distance) {
     //down and left
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) - i)) + (parseInt(tileId[1]) - parseInt(i))]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -132,8 +140,10 @@ export function horizontalAndVerticalMovement(state, tileId, pieceColor, distanc
     let possibleMoves = [];
     //left
     for (let i = 1; i <= distance; i++) {
-        let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) - i)) + tileId[1]]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) - i)) + tileId[1]];
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -143,7 +153,9 @@ export function horizontalAndVerticalMovement(state, tileId, pieceColor, distanc
     //right
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[(String.fromCharCode(tileId[0].charCodeAt(0) + i)) + tileId[1]]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -153,7 +165,9 @@ export function horizontalAndVerticalMovement(state, tileId, pieceColor, distanc
     //up
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[tileId[0] + (parseInt(tileId[1]) + i)]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -163,7 +177,9 @@ export function horizontalAndVerticalMovement(state, tileId, pieceColor, distanc
     //down
     for (let i = 1; i <= distance; i++) {
         let tileOption = state[tileId[0] + (parseInt(tileId[1]) - i)]
-        if (typeof tileOption === "undefined" || tileOption.piece.color == pieceColor) { break }
+        if(typeof tileOption === "undefined"){break}
+        else if (tileOption.piece.color == pieceColor && tileOption.piece.type == "king" && state[tileId].piece.type == "none"){possibleMoves.push(tileOption.id)}
+        else if (tileOption.piece.color == pieceColor) { break }
         else if (tileOption.piece.color != pieceColor && tileOption.piece.color != "none") {
             possibleMoves.push(tileOption.id);
             break;
@@ -174,42 +190,104 @@ export function horizontalAndVerticalMovement(state, tileId, pieceColor, distanc
     return possibleMoves;
 }
 
-export function castle(state, tileId, pieceColor){
+/**ugh this has gotten out of my hands with complication. I am sure there are simpler more elegant ways of 
+ * handling this but I am getting exhausted with this project. These special movements are adding a lot of 
+ * extra weight. Forgive my repeated code. SHould have thought this through more. - 8/15/2019
+ */
+export function castle(state, tileId, pieceColor) {
     let possibleMoves = [];
-    let rookCastlePlacement;
-    console.log("castle activated")
+    let rookCastlePlacementLeft = { prevTile: "none", newTile: "none" };
+    let rookCastlePlacementRight = { prevTile: "none", newTile: "none" };
     //if the king has not moved a castle may be possible
-    if(!state[tileId].piece.hasMoved){
-        if(pieceColor == "white"){
-            console.log("castle piece type is white")
-            //ensure all tiles up to the rook are empty
-            for(let i = 1; i < 4; i++){
+    if (!state[tileId].piece.hasMoved) {
+        console.log("checking for castle")
+        if (pieceColor == "white") {
+            //ensure all tiles to the left up to the rook are empty
+            let emptyOnLeft = true;
+            for (let i = 1; i < 4; i++) {
                 let neighborTile = state[(String.fromCharCode(tileId[0].charCodeAt(0) - i)) + tileId[1]];
-                if(neighborTile.piece.type != "none"){
-                    console.log(`not empty at ${i}`)
-                    return [possibleMoves, {prevTile:"none", newTile:"none"}];
+                if (neighborTile.piece.type != "none") {
+                    emptyOnLeft = false;
                 }
             }
-            console.log("all empty tiles to left")
-            //check for an unmoved rook to castle with
-            let rookTile = (String.fromCharCode(tileId[0].charCodeAt(0) - 4)) + tileId[1];
-            console.log(`this is the rook tile: ${rookTile}`)
-            console.log(`type is ${state[rookTile].piece.type}`)
-            console.log(`hasMoved is ${state[rookTile].piece.hasMoved}`)
-            console.log(state[rookTile].piece.type == "rook" && state[rookTile].hasMoved == false)
-            if(state[rookTile].piece.type == "rook" && !state[rookTile].hasMoved){
+            //ensure all tiles to the right up to the rook are empty
+            let emptyOnRight = true;
+            for (let i = 1; i < 3; i++) {
+                let neighborTile = state[(String.fromCharCode(tileId[0].charCodeAt(0) + i)) + tileId[1]];
+                if (neighborTile.piece.type != "none") {
+                    emptyOnRight = false;
+                }
+            }
+            //check for an unmoved rook to castle with on left
+            let rookTileLeft = (String.fromCharCode(tileId[0].charCodeAt(0) - 4)) + tileId[1];
+            if (state[rookTileLeft].piece.type == "rook" && !state[rookTileLeft].hasMoved && emptyOnLeft) {
                 let newKingTile = (String.fromCharCode(tileId[0].charCodeAt(0) - 2)) + tileId[1];
                 console.log(`This is the new tile for the king: ${newKingTile}`)
                 possibleMoves.push(newKingTile);
+                rookCastlePlacementLeft = {
+                    prevTile: ((String.fromCharCode(tileId[0].charCodeAt(0) - 4))) + tileId[1],
+                    newTile: ((String.fromCharCode(tileId[0].charCodeAt(0) - 1))) + tileId[1]
+                }
             }
-            rookCastlePlacement = {
-                prevTile: ((String.fromCharCode(tileId[0].charCodeAt(0) - 4))) + tileId[1],
-                newTile: ((String.fromCharCode(tileId[0].charCodeAt(0) - 1))) + tileId[1]
+            //check for an unmoved rook to castle with on right
+            let rookTileRight = (String.fromCharCode(tileId[0].charCodeAt(0) + 3)) + tileId[1];
+            if (state[rookTileRight].piece.type == "rook" && !state[rookTileRight].hasMoved && emptyOnRight) {
+                let newKingTile = (String.fromCharCode(tileId[0].charCodeAt(0) + 2)) + tileId[1];
+                console.log(`This is the new tile for the king: ${newKingTile}`)
+                possibleMoves.push(newKingTile);
+                rookCastlePlacementRight = {
+                    prevTile: ((String.fromCharCode(tileId[0].charCodeAt(0) + 3))) + tileId[1],
+                    newTile: ((String.fromCharCode(tileId[0].charCodeAt(0) + 1))) + tileId[1]
+                }
             }
+        }
+        else if (pieceColor == "black") {
+            //ensure all tiles to the right up to the rook are empty
+            let emptyOnRight = true;
+            for (let i = 1; i < 4; i++) {
+                let neighborTile = state[(String.fromCharCode(tileId[0].charCodeAt(0) - i)) + tileId[1]];
+                if (neighborTile.piece.type != "none") {
+                    emptyOnRight = false;
+                }
+            }
+            //ensure all tiles to the left up to the rook are empty
+            let emptyOnLeft = true;
+            for (let i = 1; i < 3; i++) {
+                let neighborTile = state[(String.fromCharCode(tileId[0].charCodeAt(0) + i)) + tileId[1]];
+                if (neighborTile.piece.type != "none") {
+                    emptyOnLeft = false;
+                }
+            }
+            //check for an unmoved rook to castle with on right
+            let rookTileRight = (String.fromCharCode(tileId[0].charCodeAt(0) - 4)) + tileId[1];
+            if (state[rookTileRight].piece.type == "rook" && !state[rookTileRight].hasMoved && emptyOnRight) {
+                console.log("hit rookTileRight")
+                let newKingTile = (String.fromCharCode(tileId[0].charCodeAt(0) - 2)) + tileId[1];
+                console.log(`This is the new tile for the king: ${newKingTile}`)
+                possibleMoves.push(newKingTile);
+                rookCastlePlacementRight = {
+                    prevTile: ((String.fromCharCode(tileId[0].charCodeAt(0) + 3))) + tileId[1],
+                    newTile: ((String.fromCharCode(tileId[0].charCodeAt(0) + 1))) + tileId[1]
+                }
+            }
+            //check for an unmoved rook to castle with on left
+            let rookTileLeft = (String.fromCharCode(tileId[0].charCodeAt(0) + 3)) + tileId[1];
+            if (state[rookTileLeft].piece.type == "rook" && !state[rookTileLeft].hasMoved && emptyOnLeft) {
+                console.log("hit rookTileLeft")
+                let newKingTile = (String.fromCharCode(tileId[0].charCodeAt(0) + 2)) + tileId[1];
+                console.log(`This is the new tile for the king: ${newKingTile}`)
+                possibleMoves.push(newKingTile);
+                rookCastlePlacementLeft = {
+                    prevTile: ((String.fromCharCode(tileId[0].charCodeAt(0) - 4))) + tileId[1],
+                    newTile: ((String.fromCharCode(tileId[0].charCodeAt(0) - 1))) + tileId[1]
+                }
+            }
+
+
         }
 
 
 
     }
-    return [possibleMoves, rookCastlePlacement];
+    return [possibleMoves, rookCastlePlacementLeft, rookCastlePlacementRight];
 }
