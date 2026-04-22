@@ -75,12 +75,18 @@ h1 {
   width: 56rem;
   height: 56rem; }
 
+#board.board-rotated {
+  transform: rotate(180deg); }
+
 .tile {
   width: 7rem;
   height: 7rem;
   display: flex;
   justify-content: center;
   align-items: center; }
+
+.rotated-tile {
+  transform: rotate(180deg); }
 
 .tile:hover {
   cursor: pointer; }
@@ -90,6 +96,12 @@ h1 {
 
 .dark {
   background: #cc8e35; }
+
+.selected-tile {
+  background: navy; }
+
+.possible-move {
+  box-shadow: inset 0 0 0 0.5rem rgba(36, 163, 57, 0.75); }
 
 i {
   font-size: 6rem; }
@@ -118,6 +130,9 @@ i {
   /* bring your own prefixes */
   transform: translate(-50%, -50%);
   display: none; }
+
+#piece-selector-box.visible {
+  display: block; }
 
 #piece-selector-title {
   font-size: 2rem;

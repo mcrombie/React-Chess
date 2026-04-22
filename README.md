@@ -1,68 +1,97 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React Chess
 
-## Available Scripts
+This repository is an older React chess project that started as a learning exercise. The codebase is still intentionally recognizable as the original app, but this branch is now the **patch-up version**: a conservative repair pass meant to keep the legacy structure while fixing the worst gameplay and stability problems.
 
-In the project directory, you can run:
+The long-term comparison plan is:
 
-### `npm start`
+1. `legacy-baseline`: the closest runnable version of the original app.
+2. `patch-up`: this branch, where the legacy architecture is preserved but the most disruptive bugs are fixed.
+3. `rebuild-ts`: a future full rebuild in TypeScript with a cleaner architecture.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## What This Patch-Up Version Changed
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+### Tooling And Repo Health
 
-### `npm test`
+- Replaced the old `node-sass` dependency with `sass` so the project installs and runs on a modern Node/Python setup.
+- Removed unused `redux` and `react-redux` dependencies.
+- Replaced the stale `App.test.js` smoke test that referenced a missing `App` component with a working board render test.
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Piece Identity And Board State Safety
 
-### `npm run build`
+- Removed the shared singleton-piece problem.
+  Every square now gets its own piece object instead of reusing a single `whitePawn`, `blackRook`, and so on.
+- Reset now creates a fresh game state instead of reusing mutated piece objects from earlier games.
+- Move application now clones board state before applying piece movement, captures, castling, and graveyard updates.
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Chess Rule Fixes
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+- Added a legal-move filter that simulates moves and rejects any move that leaves the moving side's king in check.
+- Fixed check/checkmate evaluation so it no longer runs inside `render()`.
+- Removed the old behavior where `checkMate()` immediately reset the board and erased the result.
+- Added stable checkmate and stalemate detection for the side to move.
+- Fixed castling so it:
+  - checks `piece.hasMoved` correctly on rooks
+  - moves the rook to the correct square
+  - rejects castles through check or out of check
+- Kept en passant support as part of pawn move generation and move application instead of leaving it half-implemented.
+- Promotion still uses the legacy piece picker, but the board now pauses while promotion is pending so the game state cannot drift underneath it.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### React/UI Safety Improvements
 
-### `npm run eject`
+- Removed render-time rule evaluation that could trigger state updates during rendering.
+- Moved board highlighting to React-driven class names instead of directly mutating tile styles during gameplay.
+- Moved board rotation to CSS classes instead of imperative DOM transforms.
+- Turn display and graveyard visibility are now handled by React rendering instead of manual element style mutation.
+- Added interval cleanup to the quote generator so it does not leave timers behind on unmount.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## What I Intentionally Did Not Change
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+This is still a patch-up, not a rebuild.
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- The app is still plain JavaScript, not TypeScript.
+- The board is still centered in a single large legacy component instead of being split into a modern engine + UI architecture.
+- The quote generator still exists as a separate concern from the chess board.
+- The UI is still visually close to the original project.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+Those larger changes are being saved for the future rebuild branch so the blog post can compare:
 
-## Learn More
+- original code
+- repaired legacy code
+- fully redesigned TypeScript code
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Running The App
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Install dependencies:
 
-### Code Splitting
+```bash
+npm install
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+Start the dev server:
 
-### Analyzing the Bundle Size
+```bash
+npm start
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+Create a production build:
 
-### Making a Progressive Web App
+```bash
+npm run build
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+Run the test suite:
 
-### Advanced Configuration
+```bash
+npm test -- --watchAll=false --runInBand
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+## Verification For This Patch-Up Pass
 
-### Deployment
+The current patch-up version was verified with:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+```bash
+npm test -- --watchAll=false --runInBand
+npm run build
+```
 
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+Both commands completed successfully on April 22, 2026.

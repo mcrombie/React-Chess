@@ -62,7 +62,11 @@ class QuoteGenerator extends React.Component {
         })
     }
     componentDidMount(){
-        setInterval(this.handleChangeQuote,20000) //changes every 20 seconds
+        this.intervalId = setInterval(this.handleChangeQuote,20000) //changes every 20 seconds
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.intervalId);
     }
 
     render() {
